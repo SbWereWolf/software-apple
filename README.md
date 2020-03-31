@@ -1,60 +1,115 @@
-<p align="center">
-    <a href="https://github.com/yiisoft" target="_blank">
-        <img src="https://avatars0.githubusercontent.com/u/993323" height="100px">
-    </a>
-    <h1 align="center">Yii 2 Advanced Project Template</h1>
-    <br>
-</p>
+# How To Install
+- `composer install`
+- Записать реквизиты соединения с СУБД в файле 
+`common/config/main-local.php`
+- `php yii migrate`
+- Настроить маршрутизацию запросов к скриптам `frontend/web/index.php`
+ и `backend/web/index.php` (создать записи DNS и настроить 
+ виртуальные хосты на веб сервере)
 
-Yii 2 Advanced Project Template is a skeleton [Yii 2](http://www.yiiframework.com/) application best for
-developing complex Web applications with multiple tiers.
+# How To Adjust
+- Открыть в браузере сайт для `frontend/web/index.php`
+- Зарегистрироваться
+- В директории `frontend/runtime/mail` найти письмо со ссылкой для 
+активации учётной записи
+- Найти в письме ссылку и перейти по ней, учётная запись будет 
+активирована
+- Открыть в браузере сайт для `backend/web/index.php`
+- Залогиниться, автоматически должна открыться страница `apple/index`
+- Нажать кнопку `Раздать карты`, будут сгенерированы яблоки
 
-The template includes three tiers: front end, back end, and console, each of which
-is a separate Yii application.
+# How To Use
+Кнопка `Раздать карты` создаёт новый набор яблок.
 
-The template is designed to work in a team development environment. It supports
-deploying the application in different environments.
+Кнопка `Выкинуть гнилые` обновляет статус яблок и удаляет гнилые.
 
-Documentation is at [docs/guide/README.md](docs/guide/README.md).
+Кнопка `Сорвать` делает яблоко "опавшим" и доступным для поедания и 
+гниения.
 
-[![Latest Stable Version](https://img.shields.io/packagist/v/yiisoft/yii2-app-advanced.svg)](https://packagist.org/packages/yiisoft/yii2-app-advanced)
-[![Total Downloads](https://img.shields.io/packagist/dt/yiisoft/yii2-app-advanced.svg)](https://packagist.org/packages/yiisoft/yii2-app-advanced)
-[![Build Status](https://travis-ci.com/yiisoft/yii2-app-advanced.svg?branch=master)](https://travis-ci.com/yiisoft/yii2-app-advanced)
+Кнопка `Откусить` увеличивает показатель "Израсходовано" на заданную 
+величину ("Израсходовано" измеряется в процентах).
 
-DIRECTORY STRUCTURE
--------------------
+# Отзыв на задание
+По заданию сначала говориться что надо сделать класс, и даётся 
+use case для тестирования класса, а потом описывается интерфейс
+пользователя.
 
+И вот не понятно, что надо было сделать ? Класс и тесты ? Или
+интерфейс пользователя и API, что бы из этого интерфейса дёргать ?
+
+При этом ладно бы CRUD был, но нет, у в задании своя логика над 
+которой надо хорошо подумать, как своевременно гнилые яблоки 
+выкидывать, вообще не понятно, не создавать же задание в планировщике.
+
+На мой вкус, для тестовго задания объём слишком большой.
+
+В итоге получилось и не туда и не сюда. И ни класса, и ни интерфейса.
+
+Класс у меня получился такой что делаем `app\Domain\Manager` и через
+его методы работаем с нашим яблоком (если менеджеру не дать яблока, 
+то он сам себе его сгенерирует).
+
+Вариант использования из задания реализовать можно.
+
+# Тестовое задание
+
+Установить advanced шаблон Yii2 фреймворка, в backend-приложении 
+реализовать следующий закрытый функционал (доступ в backend-приложение
+должен производиться только по паролю, сложного разделения прав не 
+требуется):
+
+Написать класс/объект Apple с хранением яблок в БД MySql следуя ООП 
+парадигме.
+
+Функции
+- упасть
+- съесть ($percent - процент откушенной части)
+- удалить (когда полностью съедено)
+
+Переменные
+- цвет (устанавливается при создании объекта случайным)
+- дата появления (устанавливается при создании объекта случайным unixTmeStamp)
+- дата падения (устанавливается при падении объекта с дерева)
+- статус (на дереве / упало)
+- сколько съели (%)
+- другие необходимые переменные, для определения состояния.
+
+Состояния
+- висит на дереве
+- упало/лежит на земле
+- гнилое яблоко
+
+Условия
+- Пока висит на дереве - испортиться не может.
+- Когда висит на дереве - съесть не получится.
+- После лежания 5 часов - портится.
+- Когда испорчено - съесть не получится.
+- Когда съедено - удаляется из массива яблок.
+
+Пример результирующего скрипта:
 ```
-common
-    config/              contains shared configurations
-    mail/                contains view files for e-mails
-    models/              contains model classes used in both backend and frontend
-    tests/               contains tests for common classes    
-console
-    config/              contains console configurations
-    controllers/         contains console controllers (commands)
-    migrations/          contains database migrations
-    models/              contains console-specific model classes
-    runtime/             contains files generated during runtime
-backend
-    assets/              contains application assets such as JavaScript and CSS
-    config/              contains backend configurations
-    controllers/         contains Web controller classes
-    models/              contains backend-specific model classes
-    runtime/             contains files generated during runtime
-    tests/               contains tests for backend application    
-    views/               contains view files for the Web application
-    web/                 contains the entry script and Web resources
-frontend
-    assets/              contains application assets such as JavaScript and CSS
-    config/              contains frontend configurations
-    controllers/         contains Web controller classes
-    models/              contains frontend-specific model classes
-    runtime/             contains files generated during runtime
-    tests/               contains tests for frontend application
-    views/               contains view files for the Web application
-    web/                 contains the entry script and Web resources
-    widgets/             contains frontend widgets
-vendor/                  contains dependent 3rd-party packages
-environments/            contains environment-based overrides
+$apple = new Apple('green');
+
+echo $apple->color; // green
+
+$apple->eat(50); // Бросить исключение - Съесть нельзя, яблоко на дереве
+echo $apple->size; // 1 - decimal
+
+$apple->fallToGround(); // упасть на землю
+$apple->eat(25); // откусить четверть яблока
+echo $apple->size; // 0,75
 ```
+
+На странице в приложении должны быть отображены все яблоки, которые 
+на этой же странице можно сгенерировать в случайном кол-ве 
+соответствующей кнопкой.
+
+Рядом с каждым яблоком должны быть реализованы кнопки или формы 
+соответствующие функциям (упасть, съесть  процент…) в задании.
+
+Задача не имеет каких-либо ограничений и требований. Все подходы к 
+ее решению определяют способность выбора правильного алгоритма при 
+проектировании системы и умение предусмотреть любые возможности 
+развития алгоритма. Задание должно быть выложено в репозиторий на 
+gitHub, с сохранением истории коммитов. Креативность только 
+приветствуется.

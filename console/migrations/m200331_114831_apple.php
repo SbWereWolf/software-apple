@@ -21,8 +21,8 @@ class m200331_114831_apple extends Migration
             'color' => $this->string(50),
             'created_at' => $this->integer(),
             'fell_at' => $this->integer(),
-            'status' => $this->string(50)->defaultValue('на дереве'),
-            'used_percentage' => $this->decimal(4,2)->defaultValue(0),
+            'status' => $this->string(50)->defaultValue('висит на дереве'),
+            'used_percentage' => $this->decimal(4, 2)->defaultValue(0),
 
         ], $tableOptions);
     }

@@ -2,16 +2,19 @@
 
 namespace backend\controllers;
 
-use Yii;
+use app\Domain\Manager;
+use app\Domain\Presenter;
 use app\models\Apple;
+use Yii;
+use yii\base\Exception;
 use yii\data\ActiveDataProvider;
+use yii\filters\VerbFilter;
+use yii\helpers\Json;
+use yii\helpers\Url;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
+use yii\web\Response;
 
-/**
- * AppleController implements the CRUD actions for Apple model.
- */
 class AppleController extends Controller
 {
     /**
@@ -21,14 +24,13 @@ class AppleController extends Controller
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
-                    'delete' => ['POST'],
+                    'eat' => ['POST'],
                 ],
             ],
         ];
     }
-
     /**
      * Lists all Apple models.
      * @return mixed
@@ -39,82 +41,81 @@ class AppleController extends Controller
             'query' => Apple::find(),
         ]);
 
+        $apples = $dataProvider->getModels();
+        $data = [];
+        foreach ($apples as $apple) {
+            $data[] = Presenter::make($apple);
+        }
+
         return $this->render('index', [
-            'dataProvider' => $dataProvider,
+            'data' => $data,
         ]);
     }
 
     /**
-     * Displays a single Apple model.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Response
+     * @throws \yii\db\Exception
      */
-    public function actionView($id)
+    public function actionNextTick()
     {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
+        Manager::nextTick();
+
+        return $this->redirect(Url::to(['/apple/index']));
     }
 
     /**
-     * Creates a new Apple model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
+     * @return Response
+     * @throws \yii\db\Exception
      */
-    public function actionCreate()
+    public function actionGenerate()
     {
-        $model = new Apple();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        $connection = Yii::$app->getDb();
+        $trans = $connection->beginTransaction();
+        Apple::deleteAll();
+        for ($iteration = 0; $iteration < mt_rand(4, 9); $iteration++) {
+            Manager::generate();
+        }
+        $trans->commit();
+
+        return $this->redirect(Url::to(['/apple/index']));
+    }
+
+    /**
+     * @param $id
+     * @throws NotFoundHttpException
+     */
+    public function actionFall($id)
+    {
+        $apple = $this->findModel($id);
+        try {
+            (new Manager($apple))->fall();
+        } catch (Exception $e) {
+            return $this->render(
+                'error', ['message' => $e->getMessage()]);
         }
 
-        return $this->render('create', [
-            'model' => $model,
-        ]);
+        return $this->redirect(Url::to(['/apple/index']));
     }
 
     /**
-     * Updates an existing Apple model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
+     * @throws NotFoundHttpException
+     * @throws Exception
      */
-    public function actionUpdate($id)
+    public function actionEat()
     {
-        $model = $this->findModel($id);
+        $param = Yii::$app->getRequest()->getBodyParams();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        }
+        $apple = $this->findModel($param['id']);
+        (new Manager($apple))->eat($param['piece']);
 
-        return $this->render('update', [
-            'model' => $model,
-        ]);
+        return Json::encode('OK');
     }
 
     /**
-     * Deletes an existing Apple model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
-    }
-
-    /**
-     * Finds the Apple model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
-     * @return Apple the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @param $id
+     * @return Apple|null
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {
