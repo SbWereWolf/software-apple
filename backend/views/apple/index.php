@@ -26,6 +26,13 @@ use yii\helpers\Url;
         }
     }
 </style>
+<?php
+/* @var string $message */
+if (!empty($message)) :?>
+    <div class="alert alert-danger">
+        <?= nl2br(Html::encode($message)) ?>
+    </div>
+<?php endif ?>
 <div class="apple-index">
 
     <h1>Яблоки на снегу</h1>
@@ -114,7 +121,7 @@ use yii\helpers\Url;
         fetch(request)
             .then((response) => response.json())
             .then((json) => {
-                location.reload();
+                location = '/apple/index?message=' + json.message;
             })
             .catch(() => {
                 console.error('Request to apple/eat is fail');

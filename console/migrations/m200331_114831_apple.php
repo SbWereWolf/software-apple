@@ -22,7 +22,7 @@ class m200331_114831_apple extends Migration
             'created_at' => $this->integer(),
             'fell_at' => $this->integer(),
             'status' => $this->string(50)->defaultValue('висит на дереве'),
-            'used_percentage' => $this->decimal(4, 2)->defaultValue(0),
+            'used_percentage' => $this->decimal(5, 2)->defaultValue(0),
 
         ], $tableOptions);
     }

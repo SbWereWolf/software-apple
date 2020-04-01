@@ -31,11 +31,12 @@ class AppleController extends Controller
             ],
         ];
     }
+
     /**
      * Lists all Apple models.
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex($message = null)
     {
         $dataProvider = new ActiveDataProvider([
             'query' => Apple::find(),
@@ -49,6 +50,7 @@ class AppleController extends Controller
 
         return $this->render('index', [
             'data' => $data,
+            'message' => $message,
         ]);
     }
 
@@ -58,9 +60,15 @@ class AppleController extends Controller
      */
     public function actionNextTick()
     {
-        Manager::nextTick();
+        $message = '';
+        try {
+            Manager::nextTick();
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+        }
 
-        return $this->redirect(Url::to(['/apple/index']));
+        return $this->redirect(Url::to(['/apple/index',
+            'message' => $message]));
     }
 
     /**
@@ -69,16 +77,22 @@ class AppleController extends Controller
      */
     public function actionGenerate()
     {
-
-        $connection = Yii::$app->getDb();
-        $trans = $connection->beginTransaction();
-        Apple::deleteAll();
-        for ($iteration = 0; $iteration < mt_rand(4, 9); $iteration++) {
-            Manager::generate();
+        $message = '';
+        try {
+            $connection = Yii::$app->getDb();
+            $trans = $connection->beginTransaction();
+            Apple::deleteAll();
+            $rounds = mt_rand(4, 9);
+            for ($iteration = 0; $iteration < $rounds; $iteration++) {
+                Manager::generate();
+            }
+            $trans->commit();
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
         }
-        $trans->commit();
 
-        return $this->redirect(Url::to(['/apple/index']));
+        return $this->redirect(Url::to(['/apple/index',
+            'message' => $message]));
     }
 
     /**
@@ -88,14 +102,15 @@ class AppleController extends Controller
     public function actionFall($id)
     {
         $apple = $this->findModel($id);
+        $message = '';
         try {
             (new Manager($apple))->fall();
         } catch (Exception $e) {
-            return $this->render(
-                'error', ['message' => $e->getMessage()]);
+            $message = $e->getMessage();
         }
 
-        return $this->redirect(Url::to(['/apple/index']));
+        return $this->redirect(Url::to(['/apple/index',
+            'message' => $message]));
     }
 
     /**
@@ -104,12 +119,17 @@ class AppleController extends Controller
      */
     public function actionEat()
     {
-        $param = Yii::$app->getRequest()->getBodyParams();
+        $message = '';
+        try {
+            $param = Yii::$app->getRequest()->getBodyParams();
 
-        $apple = $this->findModel($param['id']);
-        (new Manager($apple))->eat($param['piece']);
+            $apple = $this->findModel($param['id']);
+            (new Manager($apple))->eat($param['piece']);
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+        }
 
-        return Json::encode('OK');
+        return Json::encode(['message' => $message]);
     }
 
     /**
